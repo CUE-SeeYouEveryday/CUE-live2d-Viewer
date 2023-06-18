@@ -3,6 +3,8 @@
 var l2dviewer;
 var l2dmaster;
 
+PIXI.live2d.CubismConfig.setOpacityFromMotion = true
+
 function l2DViewer(){
     
     this._app = new PIXI.Application({
@@ -32,15 +34,17 @@ function l2DViewer(){
             this._app.stage.addChild(this._containers['modelcontainer']);
         }
 
-        if(!this._containers['misclcontainer']) {
-            this._containers['misclcontainer'] = new PIXI.Container();
-            this._app.stage.addChild(this._containers['misclcontainer']);
-            this.copyright = true
-            const copyright = new PIXI.Sprite(PIXI.Texture.from('./image/misc/Title_CopyW.png'));
-            copyright.anchor.set(1)
-            copyright.position.set(this._app.screen.width, this._app.screen.height);
-            this._containers['misclcontainer'].addChild(copyright);
-        }
+        // if(!this._containers['misclcontainer']) {
+        //     this._containers['misclcontainer'] = new PIXI.Container();
+        //     this._app.stage.addChild(this._containers['misclcontainer']);
+        //     this.copyright = true
+        //     const copyright = new PIXI.Sprite(PIXI.Texture.from('./image/misc/Title_CopyW.png'));
+        //     copyright.anchor.set(1)
+        //     copyright.position.set(this._app.screen.width, this._app.screen.height);
+        //     copyright.width = 440
+        //     copyright.height = 22
+        //     this._containers['misclcontainer'].addChild(copyright);
+        // }
         
         window.onresize = (e)=>{
             if(e === void 0) { e = null; }
@@ -54,6 +58,15 @@ function l2DViewer(){
                     child.height = height;
                 })
             }
+
+            // if(this._containers['misclcontainer']) {
+            //     this._containers['misclcontainer'].children.forEach((child)=>{
+            //         child.width = width / 440;
+            //         child.height = height / 22;
+            //         child.anchor.set(1)
+            //         child.position.set(this._app.screen.width, this._app.screen.height);
+            //     })
+            // }
         }
     }   
 
@@ -126,10 +139,10 @@ function l2DViewer(){
     }
 
 
-    this.switchCopyright = () => {
-        this.copyright = !this.copyright
-        this._containers['misclcontainer'].visible = this.copyright
-    }
+    // this.switchCopyright = () => {
+    //     this.copyright = !this.copyright
+    //     this._containers['misclcontainer'].visible = this.copyright
+    // }
 
     this.log = (text = '') => {
         console.log(text)
@@ -176,22 +189,22 @@ function l2dModel(){
             this._ParametersValues.PartOpacity.push(part)
         })
 
-        //復原Motion 篩走之前多餘的動作片段
-        this.getMotionManager().on('motionLoaded', function (group, index, motion) {
-            const curves = [];
+        //重新排序
+        // this.getMotionManager().on('motionLoaded', function (group, index, motion) {
+        //     const curves = [];
 
-            motion._motionData.curves.forEach((f) => {
-              if (Array.isArray(curves[f.type])) curves[f.type].push(f);
-              else curves[f.type] = [f];
-            });
+        //     motion._motionData.curves.forEach((f) => {
+        //       if (Array.isArray(curves[f.type])) curves[f.type].push(f);
+        //       else curves[f.type] = [f];
+        //     });
 
-            motion._motionData.curves.splice(
-              0,
-              motion._motionData.curves.length,
-              ...curves.flat()
-            );
+        //     motion._motionData.curves.splice(
+        //       0,
+        //       motion._motionData.curves.length,
+        //       ...curves.flat()
+        //     );
 
-        })
+        // })
     }
 
     this.pointerEventBind = () => {
@@ -296,10 +309,20 @@ function l2dModel(){
         this.getExpressionManager().setExpression(index)
     }
 
-    this.loadMotion = (group, index, priority) => {
+    this.executeMotionByName = (name, type = '') => {
+        let index = this._getMotionByName(type, name)
+        this.loadMotion(type, index, 'FORCE')
+    }
 
+    this._getMotionByName = (type, name) => {
+        let motions = this._modelsetting?.motions
+        return motions[type].findIndex(motion => motion.Name == name)
+    }
+
+    this.loadMotion = (group, index, priority) => {
         this._Model.motion(group, index, priority)
     }
+
 
     this.getAnchor = () => {
         return this._Model.anchor
@@ -806,11 +829,11 @@ $(document).ready(async() => {
         l2dviewer.setBackgroundColor(String(this.value).replace(/#/, '0x'))
     }
 
-    let copyrightCheckbox = document.getElementById("copyrightCheckbox");
-    copyrightCheckbox.checked = l2dviewer.copyright
-    copyrightCheckbox.onchange = function(e){
-        l2dviewer.switchCopyright()
-    }
+    // let copyrightCheckbox = document.getElementById("copyrightCheckbox");
+    // copyrightCheckbox.checked = l2dviewer.copyright
+    // copyrightCheckbox.onchange = function(e){
+    //     l2dviewer.switchCopyright()
+    // }
 
     Array.from(document.getElementsByClassName('collapsible')).forEach(x => {
         x.addEventListener('click', function() {
@@ -827,7 +850,6 @@ $(document).ready(async() => {
 
 
 })
-
 
 
 // background 
